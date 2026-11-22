@@ -1,5 +1,9 @@
 'use client'
 
+import { type clients } from '@/lib/data'
+import { getMembershipStatus, type MembershipStatus, formatLocalIsoDate } from '@/lib/membership'
+import { useEffect, useState, startTransition } from 'react'
+
 const styles = {
   section:
     'flex w-full flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-xs sm:p-4',
@@ -13,13 +17,21 @@ const styles = {
   itemMain: 'flex min-w-0 flex-col gap-0.5',
   name: 'truncate text-sm font-semibold text-slate-900',
   phone: 'truncate text-xs text-slate-500',
-  statusBadge:
-    'shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700',
+  statusBadge: 'shrink-0 rounded-full px-2.5 py-1 text-xs font-medium',
   emptyState:
     'rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500'
 } as const
 
-import { type clients } from '@/lib/data'
+const statusBadgeStyles: Record<MembershipStatus, string> = {
+  'Активен':
+    'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20 ring-inset',
+  'Истёк': 'bg-amber-50 text-amber-800 ring-1 ring-amber-600/20 ring-inset',
+  'Занятия закончились':
+    'bg-orange-50 text-orange-800 ring-1 ring-orange-600/20 ring-inset',
+  'Нет абонемента':
+    'bg-slate-100 text-slate-600 ring-1 ring-slate-300/60 ring-inset'
+}
+
 
 interface ClientsListProps {
   clients: typeof clients // Список клиентов
@@ -32,6 +44,15 @@ export default function ClientsList({
   selectedId,
   onSelectClient
 }: ClientsListProps) {
+  // Состояние для хранения текущей даты в формате ISO
+  const [today, setToday] = useState<string | null>(null)
+  useEffect(() => {
+    const localToday = formatLocalIsoDate(new Date())
+    startTransition(() => {
+      setToday(localToday)
+    })
+  }, [])
+
   return (
     <section className={styles.section}>
       <div className={styles.searchWrapper}>
@@ -43,26 +64,32 @@ export default function ClientsList({
       </div>
 
       <ul className={styles.list}>
-        {clients.map(client => (
-          <li key={client.id}>
-            <button
-              type="button"
-              className={
-                styles.item +
-                (selectedId === client.id ? ` ${styles.itemActive}` : '')
-              }
-              onClick={() => onSelectClient(client.id)}
-            >
-              <div className={styles.itemMain}>
-                <span className={styles.name}>{client.name}</span>
-                <span className={styles.phone}>{client.phone}</span>
-              </div>
-              <span className={styles.statusBadge}>
-                {client.membership ? 'Абонемент' : 'Нет'}
-              </span>
-            </button>
-          </li>
-        ))}
+        {clients.map(client => {
+          const status = getMembershipStatus(client.membership, today ?? '1970-01-01')
+
+          return (
+            <li key={client.id}>
+              <button
+                type="button"
+                className={
+                  styles.item +
+                  (selectedId === client.id ? ` ${styles.itemActive}` : '')
+                }
+                onClick={() => onSelectClient(client.id)}
+              >
+                <div className={styles.itemMain}>
+                  <span className={styles.name}>{client.name}</span>
+                  <span className={styles.phone}>{client.phone}</span>
+                </div>
+                <span
+                  className={`${styles.statusBadge} ${statusBadgeStyles[status]}`}
+                >
+                  {status}
+                </span>
+              </button>
+            </li>
+          )
+        })}
       </ul>
 
       {/* <div className={styles.emptyState}>Ничего не найдено</div> */}

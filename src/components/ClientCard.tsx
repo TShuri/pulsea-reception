@@ -1,9 +1,12 @@
 'use client'
 
 import { plans, type clients } from '@/lib/data'
-import { getMembershipStatus, MembershipStatus } from '@/lib/membership'
-import { useState } from 'react'
-
+import {
+  formatLocalIsoDate,
+  getMembershipStatus,
+  MembershipStatus
+} from '@/lib/membership'
+import { startTransition, useEffect, useState } from 'react'
 
 const styles = {
   card: 'flex w-full flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs sm:p-6',
@@ -49,7 +52,6 @@ const statusBadgeStyles: Record<MembershipStatus, string> = {
     'bg-slate-100 text-slate-600 ring-1 ring-slate-300/60 ring-inset'
 }
 
-
 function formatDateRu(dateStr: string): string {
   // Форматируем дату в формате "дд.мм.гггг"
   const [year, month, day] = dateStr.split('-')
@@ -72,6 +74,15 @@ export default function ClientCard({
   onMarkVisit,
   onSellPlan
 }: ClientCardProps) {
+  // Состояние для хранения текущей даты в формате ISO
+  const [today, setToday] = useState<string | null>(null)
+  useEffect(() => {
+    const localToday = formatLocalIsoDate(new Date())
+    startTransition(() => {
+      setToday(localToday)
+    })
+  }, [])
+
   // Состояние выбранного тарифа для продажи абонемента по умолчанию первый тариф из списка
   const [selectedPlanId, setSelectedPlanId] = useState<number>(
     plans[0]?.id ?? 0
@@ -89,7 +100,7 @@ export default function ClientCard({
     ? plans.find(plan => plan.id === client.membership?.planId)
     : null // Получаем текущий тариф клиента по его planId
 
-  const status = getMembershipStatus(client.membership) // Получаем статус абонемента клиента
+  const status = getMembershipStatus(client.membership, today ?? '1970-01-01') // Получаем статус абонемента клиента
 
   return (
     <section className={styles.card}>
