@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40" fill="none">
+  <defs>
+    <linearGradient id="pulsea" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6d5efc" />
+      <stop offset="1" stop-color="#9b5cf6" />
+    </linearGradient>
+  </defs>
+  <rect width="40" height="40" rx="12" fill="url(#pulsea)" />
+  <g transform="translate(4 4) scale(1.3333)">
+    <path
+      d="M2 12h4l2.5-6 4 12 2.5-6h7"
+      stroke="#fff"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </g>
+</svg>
