@@ -1,8 +1,12 @@
 'use client'
 
 import { type clients } from '@/lib/data'
-import { getMembershipStatus, type MembershipStatus, formatLocalIsoDate } from '@/lib/membership'
-import { useEffect, useState, startTransition } from 'react'
+import {
+  formatLocalIsoDate,
+  getMembershipStatus,
+  type MembershipStatus
+} from '@/lib/membership'
+import { startTransition, useEffect, useState } from 'react'
 
 const styles = {
   section:
@@ -23,15 +27,14 @@ const styles = {
 } as const
 
 const statusBadgeStyles: Record<MembershipStatus, string> = {
-  'Активен':
+  Активен:
     'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20 ring-inset',
-  'Истёк': 'bg-amber-50 text-amber-800 ring-1 ring-amber-600/20 ring-inset',
+  Истёк: 'bg-amber-50 text-amber-800 ring-1 ring-amber-600/20 ring-inset',
   'Занятия закончились':
     'bg-orange-50 text-orange-800 ring-1 ring-orange-600/20 ring-inset',
   'Нет абонемента':
     'bg-slate-100 text-slate-600 ring-1 ring-slate-300/60 ring-inset'
 }
-
 
 interface ClientsListProps {
   clients: typeof clients // Список клиентов
@@ -53,46 +56,77 @@ export default function ClientsList({
     })
   }, [])
 
+  // Состояние для хранения поискового запроса
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const trimmedQuery = searchQuery.trim().toLowerCase()
+  const digitsQuery = searchQuery.replace(/\D/g, '')
+
+  const filteredClients = clients.filter(client => {
+    if (!trimmedQuery && !digitsQuery) {
+      return true
+    }
+
+    const matchesName =
+      Boolean(trimmedQuery) && client.name.toLowerCase().includes(trimmedQuery)
+
+    const phoneTextMatch =
+      Boolean(trimmedQuery) && client.phone.toLowerCase().includes(trimmedQuery)
+
+    const clientDigits = client.phone.replace(/\D/g, '')
+    const phoneDigitsMatch =
+      digitsQuery.length > 0 && clientDigits.includes(digitsQuery)
+
+    return matchesName || phoneTextMatch || phoneDigitsMatch
+  })
+
   return (
     <section className={styles.section}>
       <div className={styles.searchWrapper}>
         <input
           type="search"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
           placeholder="Поиск по имени или телефону..."
           className={styles.searchInput}
         />
       </div>
 
-      <ul className={styles.list}>
-        {clients.map(client => {
-          const status = getMembershipStatus(client.membership, today ?? '1970-01-01')
+      {filteredClients.length === 0 ? (
+        <div className={styles.emptyState}>Ничего не найдено</div>
+      ) : (
+        <ul className={styles.list}>
+          {filteredClients.map(client => {
+            const status = getMembershipStatus(
+              client.membership,
+              today ?? '1970-01-01'
+            )
 
-          return (
-            <li key={client.id}>
-              <button
-                type="button"
-                className={
-                  styles.item +
-                  (selectedId === client.id ? ` ${styles.itemActive}` : '')
-                }
-                onClick={() => onSelectClient(client.id)}
-              >
-                <div className={styles.itemMain}>
-                  <span className={styles.name}>{client.name}</span>
-                  <span className={styles.phone}>{client.phone}</span>
-                </div>
-                <span
-                  className={`${styles.statusBadge} ${statusBadgeStyles[status]}`}
+            return (
+              <li key={client.id}>
+                <button
+                  type="button"
+                  className={
+                    styles.item +
+                    (selectedId === client.id ? ` ${styles.itemActive}` : '')
+                  }
+                  onClick={() => onSelectClient(client.id)}
                 >
-                  {status}
-                </span>
-              </button>
-            </li>
-          )
-        })}
-      </ul>
-
-      {/* <div className={styles.emptyState}>Ничего не найдено</div> */}
+                  <div className={styles.itemMain}>
+                    <span className={styles.name}>{client.name}</span>
+                    <span className={styles.phone}>{client.phone}</span>
+                  </div>
+                  <span
+                    className={`${styles.statusBadge} ${statusBadgeStyles[status]}`}
+                  >
+                    {status}
+                  </span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
     </section>
   )
 }
