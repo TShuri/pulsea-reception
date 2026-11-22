@@ -3,7 +3,7 @@
 import ClientCard from '@/components/ClientCard'
 import ClientsList from '@/components/ClientsList'
 import Header from '@/components/Header'
-import { clients, plans } from '@/data'
+import { clients, plans } from '@/lib/data'
 import { useState } from 'react'
 
 const styles = {
@@ -46,7 +46,7 @@ export default function Home() {
           return client
         } else {
           let nextVisitsLeft = client.membership.visitsLeft
-          
+
           if (nextVisitsLeft !== null) {
             nextVisitsLeft = Math.max(0, nextVisitsLeft - 1)
           }
@@ -66,7 +66,7 @@ export default function Home() {
 
   // Продаём абонемент: ставим новый срок от сегодняшнего дня и остаток занятий из тарифа
   const handleSellPlan = (clientId: number, planId: number) => {
-    const selectedPlan = plans.find((plan) => plan.id === planId)
+    const selectedPlan = plans.find(plan => plan.id === planId)
     if (!selectedPlan) {
       return
     }
@@ -76,8 +76,8 @@ export default function Home() {
     endDateObj.setDate(endDateObj.getDate() + selectedPlan.days)
     const endDate = endDateObj.toISOString().slice(0, 10)
 
-    setClientsList((prevClients) =>
-      prevClients.map((client) => {
+    setClientsList(prevClients =>
+      prevClients.map(client => {
         if (client.id !== clientId) {
           return client
         }
@@ -87,8 +87,8 @@ export default function Home() {
           membership: {
             planId: selectedPlan.id,
             endDate,
-            visitsLeft: selectedPlan.visits,
-          },
+            visitsLeft: selectedPlan.visits
+          }
         }
       })
     )

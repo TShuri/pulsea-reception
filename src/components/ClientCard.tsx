@@ -1,5 +1,10 @@
 'use client'
 
+import { plans, type clients } from '@/lib/data'
+import { getMembershipStatus, MembershipStatus } from '@/lib/membership'
+import { useState } from 'react'
+
+
 const styles = {
   card: 'flex w-full flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs sm:p-6',
   header:
@@ -7,8 +12,7 @@ const styles = {
   clientInfo: 'flex min-w-0 flex-col gap-1',
   name: 'truncate text-lg leading-tight font-bold text-slate-900 sm:text-xl',
   phone: 'text-sm text-slate-500',
-  statusBadge:
-    'shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-600/20 ring-inset',
+  statusBadge: 'shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold',
   membershipBlock:
     'flex flex-col gap-1 rounded-xl border border-slate-200/80 bg-slate-50 p-3.5 sm:p-4',
   membershipTitle: 'text-sm font-semibold text-slate-900 sm:text-base',
@@ -35,36 +39,25 @@ const styles = {
     'shrink-0 cursor-pointer rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-emerald-700'
 } as const
 
-
-type Membership = {
-  planId: number
-  endDate: string
-  visitsLeft: number | null
-} | null
-
-function isMembershipActive(membership: Membership): boolean {
-  // Проверяем, активен ли абонемент
-  if (!membership) {
-    return false
-  }
-
-  const today = new Date().toISOString().slice(0, 10)
-
-  // Если дата окончания уже прошла — абонемент неактивен
-  if (membership.endDate < today) {
-    return false
-  }
-
-  // Если не безлимит (visitsLeft не null) и занятия кончились — неактивен
-  if (membership.visitsLeft !== null && membership.visitsLeft <= 0) {
-    return false
-  }
-  
-  return true
+const statusBadgeStyles: Record<MembershipStatus, string> = {
+  Активен:
+    'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20 ring-inset',
+  Истёк: 'bg-amber-50 text-amber-800 ring-1 ring-amber-600/20 ring-inset',
+  'Занятия закончились':
+    'bg-orange-50 text-orange-800 ring-1 ring-orange-600/20 ring-inset',
+  'Нет абонемента':
+    'bg-slate-100 text-slate-600 ring-1 ring-slate-300/60 ring-inset'
 }
 
-import { plans, type clients } from '@/data'
-import { useState } from 'react'
+
+function formatDateRu(dateStr: string): string {
+  // Форматируем дату в формате "дд.мм.гггг"
+  const [year, month, day] = dateStr.split('-')
+  if (!year || !month || !day) {
+    return dateStr
+  }
+  return `${day}.${month}.${year}`
+}
 
 type Client = (typeof clients)[number]
 
@@ -94,8 +87,9 @@ export default function ClientCard({
 
   const currentPlan = client.membership
     ? plans.find(plan => plan.id === client.membership?.planId)
-    : null
-  const active = isMembershipActive(client.membership)
+    : null // Получаем текущий тариф клиента по его planId
+
+  const status = getMembershipStatus(client.membership) // Получаем статус абонемента клиента
 
   return (
     <section className={styles.card}>
@@ -105,27 +99,32 @@ export default function ClientCard({
           <h2 className={styles.name}>{client.name}</h2>
           <p className={styles.phone}>{client.phone}</p>
         </div>
-        <span className={styles.statusBadge}>
-          {active ? 'Абонемент активен' : 'Абонемент неактивен'}
+        <span className={`${styles.statusBadge} ${statusBadgeStyles[status]}`}>
+          {status}
         </span>
       </div>
 
       {/* Информация о текущем абонементе */}
       <div className={styles.membershipBlock}>
-        <p className={styles.membershipTitle}>Тариф: {currentPlan?.title}</p>
+        <p className={styles.membershipTitle}>
+          {client.membership
+            ? `Тариф: ${currentPlan?.title ?? 'Неизвестный тариф'}`
+            : 'Абонемент не оформлен'}
+        </p>
+
         <p className={styles.membershipMeta}>
           {client.membership
-            ? `До ${client.membership.endDate} · Осталось: ${
+            ? `Действует до ${formatDateRu(client.membership.endDate)} · Осталось занятий: ${
                 client.membership.visitsLeft === null
                   ? 'безлимит'
                   : client.membership.visitsLeft
               }`
-            : 'Выбери тариф ниже'}
+            : 'Оформи новый абонемент в блоке ниже'}
         </p>
       </div>
 
       {/* Блок действий */}
-      {active ? (
+      {status === 'Активен' ? (
         // Если абонемент активен, показываем кнопку "Отметить посещение"
         <div className={styles.actionsBlock}>
           <button
@@ -185,7 +184,7 @@ export default function ClientCard({
                   className={styles.historyItem}
                 >
                   <span>Посещение</span>
-                  <span>{visit}</span>
+                  <span>{formatDateRu(visit)}</span>
                 </li>
               ))}
           </ul>
