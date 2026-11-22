@@ -39,13 +39,13 @@ export default function Header({ onReset }: HeaderProps) {
 
         <div className={styles.actions}>
           <span className={styles.subtitle}>Абонементы и посещения</span>
-          <button
+          {/* <button
             type="button"
             onClick={onReset}
             className={styles.resetButton}
           >
             Сбросить данные
-          </button>
+          </button> */}
         </div>
       </div>
     </header>

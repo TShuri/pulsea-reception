@@ -27,9 +27,9 @@ const styles = {
 } as const
 
 const statusBadgeStyles: Record<MembershipStatus, string> = {
-  Активен:
+  'Активен':
     'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20 ring-inset',
-  Истёк: 'bg-amber-50 text-amber-800 ring-1 ring-amber-600/20 ring-inset',
+  'Истёк': 'bg-amber-50 text-amber-800 ring-1 ring-amber-600/20 ring-inset',
   'Занятия закончились':
     'bg-orange-50 text-orange-800 ring-1 ring-orange-600/20 ring-inset',
   'Нет абонемента':
