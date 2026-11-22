@@ -15,11 +15,8 @@ const styles = {
     'cursor-pointer rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 sm:px-3.5 sm:text-sm',
 } as const
 
-interface HeaderProps {
-  onReset?: () => void
-}
 
-export default function Header({ onReset }: HeaderProps) {
+export default function Header() {
   return (
     <header className={styles.header}>
       <div className={styles.container}>
@@ -39,13 +36,6 @@ export default function Header({ onReset }: HeaderProps) {
 
         <div className={styles.actions}>
           <span className={styles.subtitle}>Абонементы и посещения</span>
-          {/* <button
-            type="button"
-            onClick={onReset}
-            className={styles.resetButton}
-          >
-            Сбросить данные
-          </button> */}
         </div>
       </div>
     </header>

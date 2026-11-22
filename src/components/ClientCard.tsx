@@ -124,13 +124,19 @@ export default function ClientCard({
         </p>
 
         <p className={styles.membershipMeta}>
-          {client.membership
-            ? `Действует до ${formatDateRu(client.membership.endDate)} · Осталось занятий: ${
-                client.membership.visitsLeft === null
-                  ? 'безлимит'
-                  : client.membership.visitsLeft
-              }`
-            : 'Оформи новый абонемент в блоке ниже'}
+          {client.membership ? (
+            <>
+              {today !== null && status === 'Истёк'
+                ? 'Действовал до'
+                : 'Действует до'}{' '}
+              {formatDateRu(client.membership.endDate)} · Осталось занятий:{' '}
+              {client.membership.visitsLeft === null
+                ? 'безлимит'
+                : client.membership.visitsLeft}
+            </>
+          ) : (
+            'Оформи новый абонемент в блоке ниже'
+          )}
         </p>
       </div>
 
